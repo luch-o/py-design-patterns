@@ -1,4 +1,6 @@
 import os
+from dataclasses import dataclass, field
+from abc import ABC, abstractmethod
 from pydantic import BaseModel
 
 from dotenv import load_dotenv
@@ -42,33 +44,35 @@ class PaymentValidator:
             print("Invalid payment data")
             raise ValueError("Invalid payment data")
 
+class INotificationSender(ABC):
+    """Notification sender interface"""
 
-class NotificationSender:
-    def notify(self, customer_data: Customer):
-        if "email" in customer_data["contact_info"]:
-            # import smtplib
-            from email.mime.text import MIMEText
+    @abstractmethod
+    def send_confirmation(self, customer_data: Customer):
+        """Send a confirmation notification to the customer"""
 
-            msg = MIMEText("Thank you for your payment.")
-            msg["Subject"] = "Payment Confirmation"
-            msg["From"] = "no-reply@example.com"
-            msg["To"] = customer_data["contact_info"]["email"]
+class EmailNotificationSender(INotificationSender):
+    """Email notification sender"""
 
-            # server = smtplib.SMTP("localhost")
-            # server.send_message(msg)
-            # server.quit()
-            print("Email sent to", customer_data["contact_info"]["email"])
+    def send_confirmation(self, customer_data: Customer):
+        from email.mime.text import MIMEText
 
-        elif "phone" in customer_data["contact_info"]:
-            phone_number = customer_data["contact_info"]["phone"]
-            sms_gateway = "the custom SMS Gateway"
-            print(
-                f"send the sms using {sms_gateway}: SMS sent to {phone_number}: Thank you for your payment."
-            )
+        msg = MIMEText("Thank you for your payment.")
+        msg["Subject"] = "Payment Confirmation"
+        msg["From"] = "no-reply@example.com"
+        msg["To"] = customer_data.contact_info.email or ""
 
-        else:
-            print("No valid contact information for notification")
-            return
+        print("Email sent to", customer_data.contact_info.email)
+
+class SMSNotificationSender(INotificationSender):
+    """SMS notification sender"""
+
+    def send_confirmation(self, customer_data: Customer):        
+        phone_number = customer_data.contact_info.phone
+        sms_gateway = "the custom SMS Gateway"
+        print(
+            f"send the sms using {sms_gateway}: SMS sent to {phone_number}: Thank you for your payment."
+        )
 
 
 class TransactionLogger:
@@ -78,7 +82,17 @@ class TransactionLogger:
             log_file.write(f"Payment status: {charge['status']}\n")
 
 
-class StripePaymentProcessor:
+class IPaymentProcessor(ABC):
+    """Payment processor interface"""
+
+    @abstractmethod
+    def process_transaction(self, customer_data: Customer, payment_data: Payment) -> Charge:
+        """Process a transaction"""
+
+
+class StripePaymentProcessor(IPaymentProcessor):
+    """Stripe payment processor"""
+
     def process_transaction(self, customer_data: Customer, payment_data: Payment) -> Charge:
         stripe.api_key = os.getenv("STRIPE_API_KEY")
 
@@ -96,12 +110,14 @@ class StripePaymentProcessor:
 
         return charge
 
-
+@dataclass
 class PaymentProcessingSerivice:
+    """Payment processing service"""
+
     customer_validator = CustomerValidator()
     payment_validator = PaymentValidator()
-    payment_processor = StripePaymentProcessor()
-    notification_sender = NotificationSender()
+    payment_processor: IPaymentProcessor = field(default_factory=StripePaymentProcessor)
+    notification_sender: INotificationSender = field(default_factory=EmailNotificationSender)
     transaction_logger = TransactionLogger()
 
     def process_transaction(self, customer_data: Customer, payment_data: Payment):
