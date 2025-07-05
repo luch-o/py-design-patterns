@@ -83,8 +83,9 @@ class EmailNotifier(Notifier):
 
 @dataclass
 class SMSNotifier(Notifier):
+    sms_gateway: str
 
-    def send_confirmation(self, customer_data: CustomerData, sms_gateway: str):
+    def send_confirmation(self, customer_data: CustomerData):
         phone_number = customer_data.contact_info.phone
         print(
             f"send the sms using {self.sms_gateway}: SMS sent to {phone_number}: Thank you for your payment."
@@ -170,7 +171,7 @@ class PaymentService:
 
 
 if __name__ == "__main__":
-    sms_notifier = SMSNotifier()
+    sms_notifier = SMSNotifier(sms_gateway="This is a sms mock gateway")
     payment_service = PaymentService()
     payment_service_sms_notifier = PaymentService(notifier=sms_notifier)
 
