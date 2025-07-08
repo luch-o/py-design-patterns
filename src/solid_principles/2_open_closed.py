@@ -44,12 +44,14 @@ class PaymentValidator:
             print("Invalid payment data")
             raise ValueError("Invalid payment data")
 
+
 class INotificationSender(ABC):
     """Notification sender interface"""
 
     @abstractmethod
     def send_confirmation(self, customer_data: Customer):
         """Send a confirmation notification to the customer"""
+
 
 class EmailNotificationSender(INotificationSender):
     """Email notification sender"""
@@ -64,10 +66,11 @@ class EmailNotificationSender(INotificationSender):
 
         print("Email sent to", customer_data.contact_info.email)
 
+
 class SMSNotificationSender(INotificationSender):
     """SMS notification sender"""
 
-    def send_confirmation(self, customer_data: Customer):        
+    def send_confirmation(self, customer_data: Customer):
         phone_number = customer_data.contact_info.phone
         sms_gateway = "the custom SMS Gateway"
         print(
@@ -86,14 +89,18 @@ class IPaymentProcessor(ABC):
     """Payment processor interface"""
 
     @abstractmethod
-    def process_transaction(self, customer_data: Customer, payment_data: Payment) -> Charge:
+    def process_transaction(
+        self, customer_data: Customer, payment_data: Payment
+    ) -> Charge:
         """Process a transaction"""
 
 
 class StripePaymentProcessor(IPaymentProcessor):
     """Stripe payment processor"""
 
-    def process_transaction(self, customer_data: Customer, payment_data: Payment) -> Charge:
+    def process_transaction(
+        self, customer_data: Customer, payment_data: Payment
+    ) -> Charge:
         stripe.api_key = os.getenv("STRIPE_API_KEY")
 
         try:
@@ -110,6 +117,7 @@ class StripePaymentProcessor(IPaymentProcessor):
 
         return charge
 
+
 @dataclass
 class PaymentProcessingSerivice:
     """Payment processing service"""
@@ -117,7 +125,9 @@ class PaymentProcessingSerivice:
     customer_validator = CustomerValidator()
     payment_validator = PaymentValidator()
     payment_processor: IPaymentProcessor = field(default_factory=StripePaymentProcessor)
-    notification_sender: INotificationSender = field(default_factory=EmailNotificationSender)
+    notification_sender: INotificationSender = field(
+        default_factory=EmailNotificationSender
+    )
     transaction_logger = TransactionLogger()
 
     def process_transaction(self, customer_data: Customer, payment_data: Payment):
