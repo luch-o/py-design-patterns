@@ -5,6 +5,7 @@ from .interfaces import (
 )
 from .stripe import StripePaymentProcessor
 from .offline import OfflinePaymentProcessor
+from .factory import PaymentProcessorFactory
 
 __all__ = [
     "PaymentProcessorProtocol",
@@ -12,4 +13,5 @@ __all__ = [
     "RecurringPaymentProtocol",
     "StripePaymentProcessor",
     "OfflinePaymentProcessor",
+    "PaymentProcessorFactory",
 ]

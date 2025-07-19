@@ -1,4 +1,6 @@
 from typing import Optional
+
+from enum import Enum
 from pydantic import BaseModel
 
 
@@ -13,9 +15,16 @@ class CustomerData(BaseModel):
     customer_id: Optional[str] = None
 
 
+class PaymentType(Enum):
+    ONLINE = "online"
+    OFFLINE = "offline"
+
+
 class PaymentData(BaseModel):
     amount: int
     source: str
+    currency: str = "USD"
+    payment_type: PaymentType = PaymentType.ONLINE
 
 
 class PaymentResponse(BaseModel):
