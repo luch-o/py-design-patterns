@@ -10,11 +10,11 @@ from src.payment_service.processors import (
 from src.payment_service.notifications import Notifier
 from src.payment_service.validations import CustomerValidator, PaymentDataValidator
 from src.payment_service.logging import TransactionLogger
-
+from src.payment_service.services.interfaces import PaymentServiceProtocol
 
 
 @dataclass
-class PaymentService:
+class PaymentService(PaymentServiceProtocol):
     payment_processor: PaymentProcessorProtocol
     notifier: Notifier
     customer_validator: CustomerValidator

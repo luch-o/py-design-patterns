@@ -1,7 +1,7 @@
 from src.payment_service.notifications import EmailNotifier, SMSNotifier
 from src.payment_service.validations import CustomerValidator, PaymentDataValidator
 from src.payment_service.logging import TransactionLogger
-from src.payment_service.services import PaymentService
+from src.payment_service.services import PaymentService, PaymentServiceLoggerDecorator
 from src.payment_service.models import CustomerData, ContactInfo, PaymentData
 from src.payment_service.notifications import Notifier
 
@@ -45,6 +45,8 @@ if __name__ == "__main__":
         payment_validator=payment_validator,
         logger=logger,
     )
+
+    payment_service = PaymentServiceLoggerDecorator(payment_service)
 
     payment_service.process_transaction(customer, PaymentData(amount=100, source="stripe"))
 
