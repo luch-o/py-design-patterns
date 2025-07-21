@@ -1,11 +1,10 @@
 from dataclasses import dataclass
-from typing import Optional, Self
+from typing import Optional
 from src.payment_service.models import CustomerData, PaymentData, PaymentResponse
 from src.payment_service.processors import (
     PaymentProcessorProtocol,
     RefundPaymentProtocol,
     RecurringPaymentProtocol,
-    PaymentProcessorFactory,
 )
 from src.payment_service.notifications import Notifier
 from src.payment_service.validations import CustomerValidator, PaymentDataValidator
@@ -22,18 +21,6 @@ class PaymentService(PaymentServiceProtocol):
     logger: TransactionLogger
     recurring_processor: Optional[RecurringPaymentProtocol] = None
     refund_processor: Optional[RefundPaymentProtocol] = None
-
-    @classmethod
-    def create_with_processor(cls, payment_data: PaymentData, **kwargs) -> Self:
-        try:
-            payment_processor = PaymentProcessorFactory.create_processor(payment_data)
-        except ValueError as e:
-            raise ValueError(f"Error creating a processor for payment type: {payment_data.payment_type}") from e
-        
-        return cls(
-            payment_processor=payment_processor,
-            **kwargs
-        )
 
     def set_notification_strategy(self, notifier: Notifier):
         self.notifier = notifier
