@@ -18,6 +18,7 @@ from src.payment_service.notifications import NotifierFactory
 from src.payment_service.processors import PaymentProcessorFactory
 from src.payment_service.logging import TransactionLogger
 from src.payment_service.models import ContactInfo, PaymentData
+from src.payment_service.listeners import EventManager, AccountabilityListener
 
 
 @dataclass
@@ -27,6 +28,7 @@ class PaymentServiceBuilder:
     customer_validator: Optional[CustomerValidator] = None
     payment_validator: Optional[PaymentDataValidator] = None
     logger: Optional[TransactionLogger] = None
+    event_manager: Optional[EventManager] = None
     recurring_processor: Optional[RecurringPaymentProtocol] = None
     refund_processor: Optional[RefundPaymentProtocol] = None
 
@@ -44,6 +46,11 @@ class PaymentServiceBuilder:
 
     def set_notifier(self, contact_info: ContactInfo) -> Self:
         self.notifier = NotifierFactory.create_notifier(contact_info)
+        return self
+    
+    def set_event_manager(self) -> Self:
+        self.event_manager = EventManager()
+        self.event_manager.subscribe(AccountabilityListener())
         return self
 
     def set_payment_processor(self, payment_data: PaymentData) -> Self:
@@ -94,6 +101,7 @@ class PaymentServiceBuilder:
                 ("customer_validator", self.customer_validator),
                 ("payment_validator", self.payment_validator),
                 ("logger", self.logger),
+                ("event_manager", self.event_manager),
             ]
             if value is None
         ]
@@ -106,6 +114,7 @@ class PaymentServiceBuilder:
             customer_validator=self.customer_validator,
             payment_validator=self.payment_validator,
             logger=self.logger,
+            event_manager=self.event_manager,
             recurring_processor=self.recurring_processor,
             refund_processor=self.refund_processor,
         )

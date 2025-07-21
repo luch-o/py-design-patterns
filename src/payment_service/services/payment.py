@@ -10,6 +10,7 @@ from src.payment_service.notifications import Notifier
 from src.payment_service.validations import CustomerValidator, PaymentDataValidator
 from src.payment_service.logging import TransactionLogger
 from src.payment_service.services.interfaces import PaymentServiceProtocol
+from src.payment_service.listeners import EventManager
 
 
 @dataclass
@@ -19,6 +20,7 @@ class PaymentService(PaymentServiceProtocol):
     customer_validator: CustomerValidator
     payment_validator: PaymentDataValidator
     logger: TransactionLogger
+    event_manager: EventManager
     recurring_processor: Optional[RecurringPaymentProtocol] = None
     refund_processor: Optional[RefundPaymentProtocol] = None
 
@@ -33,6 +35,7 @@ class PaymentService(PaymentServiceProtocol):
         payment_response = self.payment_processor.process_transaction(
             customer_data, payment_data
         )
+        self.event_manager.notify(payment_response)
         self.notifier.send_confirmation(customer_data)
         self.logger.log_transaction(customer_data, payment_data, payment_response)
         return payment_response
