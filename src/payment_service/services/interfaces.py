@@ -6,7 +6,7 @@ from src.payment_service.processors import (
     RefundPaymentProtocol,
 )
 from src.payment_service.notifications import Notifier
-from src.payment_service.validations import CustomerValidator, PaymentDataValidator
+from src.payment_service.validations import ChainHandler
 from src.payment_service.logging import TransactionLogger
 from src.payment_service.listeners import EventManager
 
@@ -14,8 +14,7 @@ from src.payment_service.listeners import EventManager
 class PaymentServiceProtocol(Protocol):
     payment_processor: PaymentProcessorProtocol
     notifier: Notifier
-    customer_validator: CustomerValidator
-    payment_validator: PaymentDataValidator
+    validator: ChainHandler
     logger: TransactionLogger
     event_manager: EventManager
     recurring_processor: Optional[RecurringPaymentProtocol] = None

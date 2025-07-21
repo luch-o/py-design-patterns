@@ -27,6 +27,11 @@ class PaymentData(BaseModel):
     payment_type: PaymentType = PaymentType.ONLINE
 
 
+class Request(BaseModel):
+    customer_data: CustomerData
+    payment_data: PaymentData
+
+
 class PaymentResponse(BaseModel):
     status: str
     amount: int

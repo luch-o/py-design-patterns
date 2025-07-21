@@ -1,13 +1,18 @@
 from dataclasses import dataclass
 from typing import Optional
-from src.payment_service.models import CustomerData, PaymentData, PaymentResponse
+from src.payment_service.models import (
+    CustomerData,
+    PaymentData,
+    PaymentResponse,
+    Request,
+)
 from src.payment_service.processors import (
     PaymentProcessorProtocol,
     RefundPaymentProtocol,
     RecurringPaymentProtocol,
 )
 from src.payment_service.notifications import Notifier
-from src.payment_service.validations import CustomerValidator, PaymentDataValidator
+from src.payment_service.validations import ChainHandler
 from src.payment_service.logging import TransactionLogger
 from src.payment_service.services.interfaces import PaymentServiceProtocol
 from src.payment_service.listeners import EventManager
@@ -17,8 +22,7 @@ from src.payment_service.listeners import EventManager
 class PaymentService(PaymentServiceProtocol):
     payment_processor: PaymentProcessorProtocol
     notifier: Notifier
-    customer_validator: CustomerValidator
-    payment_validator: PaymentDataValidator
+    validator: ChainHandler
     logger: TransactionLogger
     event_manager: EventManager
     recurring_processor: Optional[RecurringPaymentProtocol] = None
@@ -30,8 +34,8 @@ class PaymentService(PaymentServiceProtocol):
     def process_transaction(
         self, customer_data: CustomerData, payment_data: PaymentData
     ) -> PaymentResponse:
-        self.customer_validator.validate(customer_data)
-        self.payment_validator.validate(payment_data)
+        request = Request(customer_data, payment_data)
+        self.validator.handle(request)
         payment_response = self.payment_processor.process_transaction(
             customer_data, payment_data
         )

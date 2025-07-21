@@ -1,4 +1,5 @@
+from .chain import CustomerHandler, PaymentHandler, ChainHandler
 from .customer import CustomerValidator
-from .payment import PaymentDataValidator
+from .payment import PaymentDataValidator   
 
-__all__ = ["CustomerValidator", "PaymentDataValidator"]
+__all__ = ["CustomerHandler", "PaymentHandler", "ChainHandler", "CustomerValidator", "PaymentDataValidator"]

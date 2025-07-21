@@ -13,7 +13,7 @@ from src.payment_service.processors import (
     RefundPaymentProtocol,
 )
 from src.payment_service.notifications import Notifier
-from src.payment_service.validations import CustomerValidator, PaymentDataValidator
+from src.payment_service.validations import ChainHandler, CustomerHandler, PaymentHandler
 from src.payment_service.notifications import NotifierFactory
 from src.payment_service.processors import PaymentProcessorFactory
 from src.payment_service.logging import TransactionLogger
@@ -25,19 +25,17 @@ from src.payment_service.listeners import EventManager, AccountabilityListener
 class PaymentServiceBuilder:
     payment_processor: Optional[PaymentProcessorProtocol] = None
     notifier: Optional[Notifier] = None
-    customer_validator: Optional[CustomerValidator] = None
-    payment_validator: Optional[PaymentDataValidator] = None
+    validator: Optional[ChainHandler] = None
     logger: Optional[TransactionLogger] = None
     event_manager: Optional[EventManager] = None
     recurring_processor: Optional[RecurringPaymentProtocol] = None
     refund_processor: Optional[RefundPaymentProtocol] = None
 
-    def set_customer_validator(self) -> Self:
-        self.customer_validator = CustomerValidator()
-        return self
-
-    def set_payment_validator(self) -> Self:
-        self.payment_validator = PaymentDataValidator()
+    def set_validator(self) -> Self:
+        customer_validator = CustomerHandler()
+        payment_validator = PaymentHandler()
+        customer_validator.set_next(payment_validator)
+        self.validator = customer_validator
         return self
 
     def set_logger(self) -> Self:
@@ -98,8 +96,7 @@ class PaymentServiceBuilder:
             for name, value in [
                 ("payment_processor", self.payment_processor),
                 ("notifier", self.notifier),
-                ("customer_validator", self.customer_validator),
-                ("payment_validator", self.payment_validator),
+                ("validator", self.validator),
                 ("logger", self.logger),
                 ("event_manager", self.event_manager),
             ]
@@ -111,8 +108,7 @@ class PaymentServiceBuilder:
         return PaymentService(
             payment_processor=self.payment_processor,
             notifier=self.notifier,
-            customer_validator=self.customer_validator,
-            payment_validator=self.payment_validator,
+            validator=self.validator,
             logger=self.logger,
             event_manager=self.event_manager,
             recurring_processor=self.recurring_processor,

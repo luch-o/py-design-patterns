@@ -34,8 +34,7 @@ if __name__ == "__main__":
 
     builder = PaymentServiceBuilder()
     service = (
-        builder.set_customer_validator()
-        .set_payment_validator()
+        builder.set_validator()
         .set_logger()
         .set_notifier(customer.contact_info)
         .set_payment_processor(payment_data)
